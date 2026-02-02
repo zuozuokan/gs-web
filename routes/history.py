@@ -11,6 +11,7 @@ history_service = HistoryService()
 @history_bp.route("/view")
 def view():
     """历史记录页面"""
+ 
     return render_template("history.html")
 
 @history_bp.route("/list", methods=["GET"])

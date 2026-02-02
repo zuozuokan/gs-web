@@ -15,6 +15,12 @@ from routes.render import render_bp
 from routes.user import user_bp
 from routes.dataset import dataset_bp
 from routes.metric import metric_bp
+from routes.history import history_bp
+
+# 历史记录
+app.register_blueprint(history_bp, url_prefix="/api/history")
+
+
 
 # 登录/注册
 app.register_blueprint(auth_bp, url_prefix="/api/auth")
