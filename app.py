@@ -15,7 +15,6 @@ from routes.render import render_bp
 from routes.user import user_bp
 from routes.dataset import dataset_bp
 from routes.metric import metric_bp
-from routes.history import history_bp
 
 # 登录/注册
 app.register_blueprint(auth_bp, url_prefix="/api/auth")
@@ -37,9 +36,6 @@ app.register_blueprint(train_bp, url_prefix="/api/train")
 
 # 用户管理
 app.register_blueprint(user_bp, url_prefix="/api/user")
-
-# 历史记录
-app.register_blueprint(history_bp, url_prefix="/api/history")
 
 # 前端页面路由
 
