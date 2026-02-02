@@ -1,0 +1,393 @@
+{% extends "base.html" %}
+
+{% block title %}用户注册{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-container fade-in">
+        <div class="auth-header">
+            <div class="auth-icon">
+                <i class="fas fa-user-plus"></i>
+            </div>
+            <h1 class="auth-title">创建账户</h1>
+            <p class="auth-subtitle">注册3DGS训练系统新账户</p>
+        </div>
+        
+        <form id="registerForm" class="auth-form">
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-user"></i>
+                    用户名
+                </label>
+                <div class="input-container">
+                    <input type="text" id="username" name="username" required placeholder="请输入用户名">
+                </div>
+                <div class="form-hint">用户名长度不超过20个字符</div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-lock"></i>
+                    密码
+                </label>
+                <div class="input-container">
+                    <input type="password" id="password" name="password" required placeholder="请输入密码">
+                </div>
+                <div class="form-hint">密码长度至少6位</div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-lock"></i>
+                    确认密码
+                </label>
+                <div class="input-container">
+                    <input type="password" id="confirmPassword" name="confirmPassword" required placeholder="请确认密码">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-user-tag"></i>
+                    用户角色
+                </label>
+                <div class="role-selector">
+                    <div class="role-option selected" data-value="user">
+                        <i class="fas fa-user-circle"></i>
+                        <span>普通用户</span>
+                    </div>
+                    <div class="role-option" data-value="admin">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>管理员</span>
+                    </div>
+                </div>
+                <input type="hidden" id="role" name="role" value="user">
+            </div>
+            
+            <button type="submit" class="btn-auth">
+                <i class="fas fa-user-plus"></i>
+                创建账户
+            </button>
+        </form>
+        
+        <div class="auth-footer">
+            <p>已有账户？ <a href="{{ url_for('login_page') }}">立即登录</a></p>
+            <a href="{{ url_for('index') }}" class="btn-back">
+                <i class="fas fa-arrow-left"></i>
+                返回首页
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.auth-page {
+    min-height: calc(100vh - 70px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+}
+
+.auth-container {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 450px;
+    border: 1px solid #e9ecef;
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.auth-icon {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 1.5rem;
+    background: linear-gradient(135deg, #4361ee, #7209b7);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: white;
+}
+
+.auth-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 0.5rem;
+}
+
+.auth-subtitle {
+    color: #6c757d;
+    font-size: 0.95rem;
+}
+
+.auth-form {
+    margin-bottom: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+}
+
+.form-label i {
+    color: #4361ee;
+    width: 18px;
+}
+
+.input-container {
+    position: relative;
+}
+
+.input-container input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+}
+
+.input-container input:focus {
+    outline: none;
+    border-color: #4361ee;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+}
+
+.form-hint {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-top: 6px;
+}
+
+.role-selector {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.role-option {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1.25rem 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+}
+
+.role-option:hover {
+    border-color: #4361ee;
+    transform: translateY(-2px);
+}
+
+.role-option.selected {
+    border-color: #4361ee;
+    background: rgba(67, 97, 238, 0.05);
+}
+
+.role-option i {
+    font-size: 1.5rem;
+    color: #4361ee;
+}
+
+.role-option span {
+    font-weight: 600;
+    color: #495057;
+}
+
+.role-option.selected i,
+.role-option.selected span {
+    color: #4361ee;
+}
+
+.btn-auth {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #4361ee, #7209b7);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 2rem;
+}
+
+.btn-auth:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(67, 97, 238, 0.3);
+}
+
+.btn-auth:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.auth-footer {
+    text-align: center;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.auth-footer p {
+    color: #6c757d;
+    margin-bottom: 1.5rem;
+}
+
+.auth-footer a {
+    color: #4361ee;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}
+
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 12px;
+    background: #f8f9fa;
+    color: #495057;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-back:hover {
+    background: #e9ecef;
+    transform: translateX(-5px);
+}
+
+.fade-in {
+    animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+        if (currentUser) {
+            window.location.href = "{{ url_for('index') }}";
+        }
+        
+        // 角色选择
+        document.querySelectorAll('.role-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.role-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                this.classList.add('selected');
+                document.getElementById('role').value = this.dataset.value;
+            });
+        });
+    });
+    
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
+        const confirmPassword = document.getElementById('confirmPassword').value.trim();
+        const role = document.getElementById('role').value;
+        const btn = document.getElementById('registerBtn') || e.submitter;
+        
+        // 验证
+        if (!username || !password || !confirmPassword) {
+            alert('请填写所有必填字段');
+            return;
+        }
+        
+        if (password !== confirmPassword) {
+            alert('两次输入的密码不一致');
+            return;
+        }
+        
+        if (password.length < 6) {
+            alert('密码长度至少6位');
+            return;
+        }
+        
+        // 显示加载状态
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 注册中...';
+        btn.disabled = true;
+        
+        try {
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username, password, role})
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok && data.success) {
+                alert('注册成功！请登录');
+                window.location.href = "{{ url_for('login_page') }}";
+            } else {
+                alert(data.msg || '注册失败');
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }
+        } catch (error) {
+            alert('网络错误，请稍后重试');
+            btn.innerHTML = originalHTML;
+            btn.disabled = false;
+        }
+    });
+
+     // 页面加载时检查是否已登录
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+        if (currentUser) {
+            // 如果已登录，跳转到主页
+            window.location.href = "{{ url_for('index') }}";
+        }
+    });
+</script>
+{% endblock %}

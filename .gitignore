@@ -1,0 +1,6 @@
+# 注释
+user/        # 忽略整个文件夹
+model/
+sql/
+*.log          # 忽略所有 .log 文件
+/path/to/file  # 忽略指定路径下的文件

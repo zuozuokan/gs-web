@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3DGS训练系统 - {% block title %}{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- 字体图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- 自定义样式 -->
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary-color: #7209b7;
+            --dark-color: #1a1a2e;
+            --light-color: #f8f9fa;
+            --gray-100: #f8f9fa;
+            --gray-200: #e9ecef;
+            --gray-800: #343a40;
+            --success-color: #06d6a0;
+            --danger-color: #ef476f;
+            --border-radius: 12px;
+            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            --hover-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            color: var(--dark-color);
+        }
+
+        /* 现代化导航栏 */
+        .main-navbar {
+            background: linear-gradient(135deg, var(--dark-color), #16213e);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 0.8rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white !important;
+        }
+
+        .logo-icon {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+        }
+
+        .nav-user-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .username {
+            font-weight: 600;
+            color: white;
+            font-size: 0.95rem;
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 8px;
+            padding: 6px 15px;
+            font-size: 0.85rem;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .auth-btn {
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .login-btn {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+        }
+
+        .login-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .register-btn {
+            background: var(--primary-color);
+            border: 1px solid var(--primary-color);
+            color: white;
+        }
+
+        .register-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+        }
+
+        /* 主要内容区域 */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        /* 现代化提示框 */
+        .alert-modern {
+            border-radius: var(--border-radius);
+            border: none;
+            box-shadow: var(--card-shadow);
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            color: #0d47a1;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+            color: #1b5e20;
+            border-left: 4px solid var(--success-color);
+        }
+
+        .alert-error {
+            background: linear-gradient(135deg, #ffebee, #ffcdd2);
+            color: #b71c1c;
+            border-left: 4px solid var(--danger-color);
+        }
+
+        .alert-icon {
+            font-size: 1.2rem;
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 1.5rem 1rem;
+            }
+            
+            .navbar-brand span {
+                display: none;
+            }
+            
+            .user-info {
+                display: none;
+            }
+            
+            .auth-buttons {
+                flex-direction: column;
+                gap: 8px;
+            }
+        }
+
+        /* 卡片通用样式 */
+        .modern-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            border: none;
+            transition: var(--transition);
+            overflow: hidden;
+        }
+
+        .modern-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--hover-shadow);
+        }
+
+        .card-header-modern {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-bottom: none;
+            padding: 1.25rem 1.5rem;
+            font-weight: 600;
+        }
+
+        /* 按钮样式 */
+        .btn-modern {
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            transition: var(--transition);
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-modern-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+
+        .btn-modern-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(67, 97, 238, 0.3);
+            color: white;
+        }
+
+        .btn-modern-danger {
+            background: linear-gradient(135deg, #ef476f, #ff6b6b);
+            color: white;
+        }
+
+        .btn-modern-danger:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(239, 71, 111, 0.3);
+            color: white;
+        }
+
+        /* 动画 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        /* 加载动画 */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- 现代化导航栏 -->
+    <nav class="navbar navbar-expand-lg main-navbar">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-cube logo-icon"></i>
+                <span>3DGS训练系统</span>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="navbar-nav ms-auto" id="navUserInfo">
+                    <!-- 用户信息将通过JavaScript动态加载 -->
+                    <div class="nav-user-container">
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="text-light" id="navWelcome">
+                                <i class="fas fa-spinner fa-spin"></i> 加载中...
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容区域 -->
+    <div class="main-container fade-in">
+        <!-- 消息提示 -->
+        <div id="messageContainer">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        {% if category == 'error' %}
+                            <div class="alert-modern alert-error">
+                                <i class="fas fa-exclamation-circle alert-icon"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% elif category == 'success' %}
+                            <div class="alert-modern alert-success">
+                                <i class="fas fa-check-circle alert-icon"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% else %}
+                            <div class="alert-modern alert-info">
+                                <i class="fas fa-info-circle alert-icon"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+        
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- 通用JavaScript -->
+    <script>
+        // 获取用户名的首字母（用于头像）
+        function getInitials(username) {
+            if (!username) return "?";
+            return username.charAt(0).toUpperCase();
+        }
+
+        // 登出函数
+       function logout() {
+    sessionStorage.removeItem('currentUser');
+    window.location.href = "{{ url_for('index') }}";
+}
+
+        
+        // 检查登录状态
+        function checkAuth() {
+            const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+            if (!currentUser && window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+                showNotification('请先登录系统', 'info');
+                setTimeout(() => {
+                    window.location.href = "{{ url_for('login_page') }}";
+                }, 1500);
+                return false;
+            }
+            return currentUser;
+        }
+        
+        // 显示通知
+        function showNotification(message, type = 'info') {
+            // 创建通知元素
+            const notification = document.createElement('div');
+            notification.className = `alert-modern alert-${type}`;
+            
+            // 设置图标
+            const icon = type === 'success' ? 'fa-check-circle' : 
+                        type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+            
+            notification.innerHTML = `
+                <i class="fas ${icon} alert-icon"></i>
+                ${message}
+                <button type="button" class="btn-close ms-auto" onclick="this.parentElement.remove()"></button>
+            `;
+            
+            // 添加到消息容器
+            const container = document.getElementById('messageContainer');
+            container.appendChild(notification);
+            
+            // 5秒后自动移除
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
+        
+        // 显示错误消息（兼容函数）
+        function showError(message) {
+            showNotification(message, 'error');
+        }
+        
+        // 显示成功消息（兼容函数）
+        function showSuccess(message) {
+            showNotification(message, 'success');
+        }
+        
+        // 更新导航栏用户信息
+        function updateNavbar() {
+            const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+            const navUserInfo = document.getElementById('navUserInfo');
+            
+            if (currentUser) {
+                const roleText = currentUser.role === 'admin' ? '管理员' : '普通用户';
+                const roleClass = currentUser.role === 'admin' ? 'badge bg-danger' : 'badge bg-secondary';
+                
+                navUserInfo.innerHTML = `
+                    <div class="nav-user-container">
+                        <div class="user-avatar">
+                            ${getInitials(currentUser.username)}
+                        </div>
+                        <div class="user-info d-none d-md-block">
+                            <div class="username">${currentUser.username}</div>
+                            <div class="user-role">${roleText}</div>
+                        </div>
+                        <button class="logout-btn" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span class="d-none d-md-inline">登出</span>
+                        </button>
+                    </div>
+                `;
+            } else {
+                navUserInfo.innerHTML = `
+                    <div class="auth-buttons">
+                        <a class="auth-btn login-btn" href="{{ url_for('login_page') }}">
+                            <i class="fas fa-sign-in-alt"></i>
+                            登录
+                        </a>
+                        <a class="auth-btn register-btn" href="{{ url_for('register_page') }}">
+                            <i class="fas fa-user-plus"></i>
+                            注册
+                        </a>
+                    </div>
+                `;
+            }
+        }
+        
+        // 页面加载时检查登录状态并更新导航栏
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+            updateNavbar();
+            
+            // 添加淡入效果
+            document.querySelectorAll('.fade-in').forEach(el => {
+                el.style.opacity = '0';
+                setTimeout(() => {
+                    el.style.transition = 'opacity 0.5s ease';
+                    el.style.opacity = '1';
+                }, 100);
+            });
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

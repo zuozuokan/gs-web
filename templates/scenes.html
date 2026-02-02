@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}场景管理 - 3DGS Web{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="welcome-section" style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1><i class="fas fa-cubes"></i> 场景管理</h1>
+            <p class="subtitle">查看和预览已训练完成的3D场景</p>
+        </div>
+        <button class="btn-secondary"  style="color: black;" onclick="window.location.href='/'">
+            <i class="fas fa-arrow-left"></i> 返回主页
+        </button>
+    </div>
+
+    <div class="feature-card" style="width: 100%; max-width: 100%;">
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>场景名称</th>
+                        <th>模型路径</th>
+                        <th>关联任务ID</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="sceneTableBody">
+                    <tr>
+                        <td colspan="4" style="text-align: center;">正在加载场景...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', async function() {
+        const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+        
+        if (!currentUser) {
+            alert('请先登录');
+            window.location.href = '/login';
+            return;
+        }
+
+        loadScenes(currentUser.username);
+    });
+
+    async function loadScenes(username) {
+        try {
+            const response = await fetch(`/api/scene/list?username=${username}`);
+            const data = await response.json();
+            
+            const tbody = document.getElementById('sceneTableBody');
+            tbody.innerHTML = '';
+            
+            if (data.success && data.data.length > 0) {
+                data.data.forEach(scene => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-cube" style="color: var(--primary-color);"></i>
+                                <strong>${scene.scene_name}</strong>
+                            </div>
+                        </td>
+                        <td style="font-family: monospace; font-size: 0.9em; color: #a0aec0;">${scene.model_path}</td>
+                        <td>${scene.task_id}</td>
+                        <td>
+                            <button class="btn-preview" onclick="previewScene('${scene.model_path.replace(/\\/g, '\\\\')}')">
+                                <i class="fas fa-eye"></i> 预览场景
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">暂无已训练的场景</td></tr>';
+            }
+        } catch (error) {
+            console.error('Failed to load scenes:', error);
+            document.getElementById('sceneTableBody').innerHTML = 
+                '<tr><td colspan="4" style="text-align: center; color: red;">加载失败，请重试</td></tr>';
+        }
+    }
+
+    async function previewScene(modelPath) {
+        const btn = event.currentTarget;
+        const originalText = btn.innerHTML;
+        
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 启动中...';
+        
+        try {
+            const response = await fetch('/api/scene/preview', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ model_path: modelPath })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                showNotification('预览窗口已启动，请查看服务器屏幕', 'success');
+            } else {
+                showNotification('启动失败: ' + data.msg, 'error');
+            }
+
+        } catch (error) {
+            showNotification('请求失败: ' + error.message, 'error');
+        } finally {
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }, 2000);
+        }
+    }
+
+    function showNotification(message, type = 'info') {
+        // 简单的通知实现，如果base.html没有提供的话
+        alert(message);
+    }
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem;
+    }
+    
+    .table-responsive {
+        overflow-x: auto;
+    }
+    
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+    
+    .data-table th, .data-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .data-table th {
+        background-color: rgba(255, 255, 255, 0.05);
+        color: var(--primary-color);
+        font-weight: 600;
+    }
+    
+    .data-table tr:hover {
+        background-color: rgba(255, 255, 255, 0.02);
+    }
+    
+    .btn-preview {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 0.8rem;
+        background-color: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.2);
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-preview:hover {
+        background-color: #10b981;
+        color: white;
+    }
+    
+    .btn-preview:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    
+    .btn-secondary {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: white;
+        border: none;
+        padding: 0.6rem 1.2rem;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-secondary:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+</style>
+{% endblock %}

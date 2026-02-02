@@ -1,0 +1,1331 @@
+{% extends "base.html" %}
+
+{% block title %}系统主页{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- 用户欢迎区域 -->
+    <div class="welcome-section fade-in">
+        <div class="welcome-card">
+            <div class="welcome-icon">
+                <i class="fas fa-cube"></i>
+            </div>
+            <div class="welcome-content">
+                <h1 class="welcome-title">3DGS训练系统</h1>
+                <p class="welcome-subtitle" id="userInfoText">加载用户信息中...</p>
+                <div class="welcome-stats">
+                    <div class="stat-item">
+                        <i class="fas fa-user-circle"></i>
+                        <span>欢迎回来</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-clock"></i>
+                        <span id="currentTime">{{ now.strftime('%Y-%m-%d %H:%M') if now else '' }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 系统功能网格 -->
+    <div class="features-section fade-in">
+        <h2 class="section-title">
+            <i class="fas fa-sliders-h"></i>
+            系统功能
+        </h2>
+        
+        <div class="features-grid">
+            <!-- 用户管理卡片（仅管理员可见） -->
+            <div class="feature-card admin-only" id="adminCard">
+                <div class="feature-icon gradient-purple">
+                    <i class="fas fa-users-cog"></i>
+                </div>
+                <div class="feature-content">
+                    <h3 class="feature-title">用户管理</h3>
+                    <p class="feature-desc">管理系统的所有用户，包括添加、删除用户等操作</p>
+                    <div class="feature-tag">
+                        <span class="tag-admin">管理员专属</span>
+                    </div>
+                </div>
+                <a href="{{ url_for('admin_page') }}" class="feature-overlay">
+                    <span>进入管理</span>
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+            
+            <!-- 创建训练数据集卡片 -->
+            <div class="feature-card">
+                <div class="feature-icon gradient-pink">
+                    <i class="fas fa-video"></i>
+                </div>
+                <div class="feature-content">
+                    <h3 class="feature-title">创建训练数据集</h3>
+                    <p class="feature-desc">上传视频文件并生成3DGS训练所需的数据集</p>
+                    <div class="dataset-upload-area">
+                        <input type="file" id="videoFile" accept=".mp4,.MP4" style="display: none;">
+                        <div class="file-info" id="fileInfo">未选择文件</div>
+                        <div class="button-group">
+                            <button class="upload-btn" id="uploadBtn" onclick="uploadVideo()">
+                                <i class="fas fa-upload"></i> 上传视频
+                            </button>
+                            <button class="generate-btn" id="generateBtn" onclick="generateDataset()">
+                                <i class="fas fa-cogs"></i> 生成数据集
+                            </button>
+                        </div>
+                        <div class="status-area" id="statusArea">
+                            <!-- 状态信息将在这里显示 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 训练功能卡片 -->
+            <div class="feature-card">
+                <div class="feature-icon gradient-blue">
+                    <i class="fas fa-rocket"></i>
+                </div>
+                <div class="feature-content">
+                    <h3 class="feature-title">3DGS训练</h3>
+                    <p class="feature-desc">开始新的3D高斯泼溅训练任务，配置训练参数并监控进度</p>
+                    <div class="scene-input-area" style="margin-bottom: 1rem;">
+                        <input type="text" id="trainSceneName" class="form-control" placeholder="请输入场景名称 (Scene Name)" style="width: 100%; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 6px;">
+                    </div>
+                    <div class="status-area" id="trainStatusArea" style="display: none; margin-top: 10px;"></div>
+                </div>
+                <button class="feature-btn" id="trainBtn" onclick="startTraining()">
+                    <span>开始训练</span>
+                    <i class="fas fa-play-circle"></i>
+                </button>
+            </div>
+            
+            <!-- 渲染功能卡片 -->
+            <div class="feature-card">
+                <div class="feature-icon gradient-green">
+                    <i class="fas fa-palette"></i>
+                </div>
+                <div class="feature-content">
+                    <h3 class="feature-title">场景渲染</h3>
+                    <p class="feature-desc">对训练好的3D模型进行渲染，调整相机角度、亮度和颜色</p>
+                    <div class="scene-input-area" style="margin-bottom: 1rem;">
+                        <input type="text" id="renderSceneName" class="form-control" placeholder="请输入场景名称 (Scene Name)" style="width: 100%; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 6px;">
+                    </div>
+                    <div class="status-area" id="renderStatusArea" style="display: none; margin-top: 10px;"></div>
+                </div>
+                <button class="feature-btn" id="renderBtn" onclick="startRender()">
+                    <span>开始渲染</span>
+                    <i class="fas fa-play-circle"></i>
+                </button>
+            </div>
+            
+            <!-- 场景管理卡片 -->
+            <div class="feature-card">
+                <div class="feature-icon gradient-orange">
+                    <i class="fas fa-cubes"></i>
+                </div>
+                <div class="feature-content">
+                    <h3 class="feature-title">场景管理</h3>
+                    <p class="feature-desc">查看和预览已训练完成的3D场景</p>
+                </div>
+                <button class="feature-btn" onclick="window.location.href='/api/scene/view'">
+                    <span>查看场景</span>
+                    <i class="fas fa-play-circle"></i>
+                </button>
+            </div>
+            
+            <!-- 历史记录卡片 -->
+            <div class="feature-card">
+                <div class="feature-icon gradient-teal">
+                    <i class="fas fa-history"></i>
+                </div>
+                <div class="feature-content">
+                    <h3 class="feature-title">训练历史</h3>
+                    <p class="feature-desc">查看过往的训练任务记录和结果</p>
+                </div>
+                <button class="feature-btn" onclick="window.location.href='/api/history/view'">
+                    <span>查看历史</span>
+                    <i class="fas fa-play-circle"></i>
+                </button>
+            </div>
+            
+            <!-- 系统信息卡片 -->
+            <div class="feature-card">
+                <div class="feature-icon gradient-gray">
+                    <i class="fas fa-info-circle"></i>
+                </div>
+                <div class="feature-content">
+                    <h3 class="feature-title">系统信息</h3>
+                    <p class="feature-desc">查看系统状态、数据库连接和服务器信息</p>
+                </div>
+                <button class="feature-btn" onclick="showSystemInfo()">
+                    <span>查看信息</span>
+                    <i class="fas fa-play-circle"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 使用说明区域 -->
+    <div class="guide-section fade-in">
+        <div class="guide-card">
+            <div class="guide-header">
+                <h2 class="guide-title">
+                    <i class="fas fa-book-open"></i>
+                    使用说明
+                </h2>
+                <div class="guide-badge">新手指南</div>
+            </div>
+            <div class="guide-content">
+                <div class="guide-grid">
+                    <div class="guide-item">
+                        <div class="guide-icon">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                        <div class="guide-text">
+                            <h4>权限说明</h4>
+                            <p>管理员可以访问用户管理功能，普通用户仅限基础操作</p>
+                        </div>
+                    </div>
+                    <div class="guide-item">
+                        <div class="guide-icon">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <div class="guide-text">
+                            <h4>数据准备</h4>
+                            <p>所有训练和渲染功能需要先准备数据集</p>
+                        </div>
+                    </div>
+                    <div class="guide-item">
+                        <div class="guide-icon">
+                            <i class="fas fa-sync-alt"></i>
+                        </div>
+                        <div class="guide-text">
+                            <h4>登录状态</h4>
+                            <p>系统使用sessionStorage存储登录状态，刷新页面需要重新登录</p>
+                        </div>
+                    </div>
+                    <div class="guide-item">
+                        <div class="guide-icon">
+                            <i class="fas fa-exchange-alt"></i>
+                        </div>
+                        <div class="guide-text">
+                            <h4>页面导航</h4>
+                            <p>使用导航栏可以快速切换页面和登出系统</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 系统信息模态框 -->
+<div class="modal-overlay" id="systemModal">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3 class="modal-title">
+                <i class="fas fa-server"></i>
+                系统信息
+            </h3>
+            <button class="modal-close" onclick="closeSystemModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="info-grid" id="systemInfoContent">
+                <!-- 信息将通过JavaScript动态加载 -->
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeSystemModal()">关闭</button>
+        </div>
+    </div>
+</div>
+
+<!-- 评估结果模态框 -->
+<div class="modal-overlay" id="metricModal">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3 class="modal-title">
+                <i class="fas fa-chart-line"></i>
+                评估报告
+            </h3>
+            <button class="modal-close" onclick="closeMetricModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="info-grid" id="metricContent">
+                <!-- 评估数据将在这里显示 -->
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeMetricModal()">关闭</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.dashboard-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+}
+
+/* 欢迎区域 */
+.welcome-section {
+    margin-bottom: 3rem;
+}
+
+.welcome-card {
+    background: linear-gradient(135deg, var(--dark-color), #16213e);
+    border-radius: var(--border-radius);
+    padding: 2.5rem;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    color: white;
+    box-shadow: var(--card-shadow);
+}
+
+.welcome-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    color: var(--primary-color);
+}
+
+.welcome-content {
+    flex: 1;
+}
+
+.welcome-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, #fff, #a5b4fc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.welcome-subtitle {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 1.5rem;
+}
+
+.welcome-stats {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.stat-item i {
+    color: var(--primary-color);
+}
+
+/* 功能区域 */
+.features-section {
+    margin-bottom: 3rem;
+}
+
+.section-title {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+    color: var(--dark-color);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.section-title i {
+    color: var(--primary-color);
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.feature-card {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 1.75rem;
+    box-shadow: var(--card-shadow);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--gray-200);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--hover-shadow);
+}
+
+.feature-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.gradient-purple { background: linear-gradient(135deg, #8b5cf6, #a855f7); }
+.gradient-pink { background: linear-gradient(135deg, #ec4899, #f472b6); }
+.gradient-blue { background: linear-gradient(135deg, #3b82f6, #6366f1); }
+.gradient-green { background: linear-gradient(135deg, #10b981, #34d399); }
+.gradient-orange { background: linear-gradient(135deg, #f97316, #fb923c); }
+.gradient-teal { background: linear-gradient(135deg, #06b6d4, #22d3ee); }
+.gradient-gray { background: linear-gradient(135deg, #6b7280, #9ca3af); }
+
+.feature-content {
+    flex: 1;
+}
+
+.feature-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--dark-color);
+}
+
+.feature-desc {
+    color: var(--gray-600);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+}
+
+.feature-tag {
+    margin-top: auto;
+}
+
+.tag-admin {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--danger-color), #ff6b6b);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.feature-overlay, .feature-btn {
+    width: 100%;
+    padding: 0.875rem;
+    border-radius: 10px;
+    border: none;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.feature-btn {
+    margin-top: auto;
+}
+
+.feature-overlay:hover, .feature-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(67, 97, 238, 0.3);
+}
+
+.admin-only {
+    border-left: 4px solid var(--danger-color);
+}
+
+/* 使用指南区域 */
+.guide-section {
+    margin-bottom: 2rem;
+}
+
+.guide-card {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+}
+
+.guide-header {
+    background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.guide-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--dark-color);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.guide-title i {
+    color: var(--primary-color);
+}
+
+.guide-badge {
+    background: var(--primary-color);
+    color: white;
+    padding: 0.375rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.guide-content {
+    padding: 2rem;
+}
+
+.guide-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.guide-item {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.guide-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(67, 97, 238, 0.1), rgba(114, 9, 183, 0.1));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-color);
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.guide-text h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.375rem;
+    color: var(--dark-color);
+}
+
+.guide-text p {
+    color: var(--gray-600);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+/* 模态框 */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition);
+    padding: 1rem;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-container {
+    background: white;
+    border-radius: var(--border-radius);
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    transform: translateY(20px);
+    transition: transform 0.3s ease;
+}
+
+.modal-overlay.active .modal-container {
+    transform: translateY(0);
+}
+
+.modal-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--dark-color);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.modal-title i {
+    color: var(--primary-color);
+}
+
+.modal-close {
+    background: transparent;
+    border: none;
+    color: var(--gray-500);
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 0.5rem;
+    border-radius: 6px;
+    transition: var(--transition);
+}
+
+.modal-close:hover {
+    background: var(--gray-100);
+    color: var(--gray-700);
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+.info-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.info-label {
+    font-weight: 500;
+    color: var(--gray-700);
+}
+
+.info-value {
+    color: var(--dark-color);
+    font-weight: 500;
+}
+
+.modal-footer {
+    padding: 1.5rem 2rem;
+    border-top: 1px solid var(--gray-200);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-secondary {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    background: var(--gray-100);
+    color: var(--gray-700);
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-secondary:hover {
+    background: var(--gray-200);
+}
+
+/* 淡入动画 */
+.fade-in {
+    opacity: 0;
+    animation: fadeIn 0.6s ease forwards;
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+    }
+}
+
+/* 数据集上传区域样式 */
+.dataset-upload-area {
+    margin-top: 1rem;
+}
+
+.file-info {
+    padding: 0.75rem;
+    background-color: var(--gray-100);
+    border-radius: 8px;
+    border: 1px solid var(--gray-300);
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    color: var(--gray-700);
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.file-info:hover {
+    background-color: var(--gray-200);
+    border-color: var(--primary-color);
+}
+
+.button-group {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.upload-btn, .generate-btn {
+    flex: 1;
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.upload-btn {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+}
+
+.upload-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+}
+
+.generate-btn {
+    background: linear-gradient(135deg, #10b981, #34d399);
+    color: white;
+}
+
+.generate-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+}
+
+.generate-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.status-area {
+    padding: 0.75rem;
+    background-color: rgba(67, 97, 238, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(67, 97, 238, 0.2);
+    font-size: 0.85rem;
+    color: var(--gray-700);
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.status-success {
+    background-color: rgba(16, 185, 129, 0.05);
+    border-color: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+}
+
+.status-error {
+    background-color: rgba(239, 71, 111, 0.05);
+    border-color: rgba(239, 71, 111, 0.2);
+    color: #ef476f;
+}
+
+.status-info {
+    background-color: rgba(67, 97, 238, 0.05);
+    border-color: rgba(67, 97, 238, 0.2);
+    color: var(--primary-color);
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // 页面加载时检查登录状态
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+        if (!currentUser) {
+            window.location.href = "{{ url_for('login_page') }}";
+            return;
+        }
+        
+        // 更新页面上的用户信息
+        updateUserInfo(currentUser);
+        updateCurrentTime();
+        
+        // 更新时钟
+        setInterval(updateCurrentTime, 60000);
+        
+        console.log('主页加载，当前用户:', currentUser);
+    });
+    
+    // 更新用户信息显示
+    function updateUserInfo(currentUser) {
+        const userInfoText = document.getElementById('userInfoText');
+        const adminCard = document.getElementById('adminCard');
+        
+        const roleText = currentUser.role === 'admin' ? '管理员' : '普通用户';
+        const roleColor = currentUser.role === 'admin' ? '#ef476f' : '#6c757d';
+        
+        userInfoText.innerHTML = `
+            <span style="color: #fff;">${currentUser.username}</span> 
+            <span style="color: ${roleColor}; font-weight: 500;">· ${roleText}</span>
+        `;
+        
+        // 如果是管理员，显示管理员卡片
+        if (currentUser.role === 'admin') {
+            adminCard.style.display = 'flex';
+        } else {
+            adminCard.style.display = 'none';
+        }
+    }
+    
+    // 更新当前时间
+    function updateCurrentTime() {
+        const now = new Date();
+        const timeStr = now.toLocaleDateString('zh-CN', { 
+            year: 'numeric', 
+            month: '2-digit', 
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        const timeElement = document.getElementById('currentTime');
+        if (timeElement) {
+            timeElement.textContent = timeStr;
+        }
+    }
+    
+    // 显示开发中提示
+    function showComingSoon() {
+        // 创建临时提示
+        const notification = document.createElement('div');
+        notification.className = 'alert-modern alert-info';
+        notification.innerHTML = `
+            <i class="fas fa-tools alert-icon"></i>
+            该功能正在开发中，敬请期待！
+            <button type="button" class="btn-close ms-auto" onclick="this.parentElement.remove()"></button>
+        `;
+        
+        // 添加到消息容器
+        const container = document.getElementById('messageContainer');
+        if (container) {
+            container.appendChild(notification);
+        } else {
+            // 如果消息容器不存在，直接添加到body
+            notification.style.position = 'fixed';
+            notification.style.top = '20px';
+            notification.style.right = '20px';
+            notification.style.zIndex = '9999';
+            document.body.appendChild(notification);
+        }
+        
+        // 5秒后自动移除
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 5000);
+    }
+    
+    // 显示系统信息模态框
+    function showSystemInfo() {
+        const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+        if (!currentUser) {
+            showNotification('请先登录', 'error');
+            return;
+        }
+        
+        const now = new Date();
+        const infoHTML = `
+            <div class="info-item">
+                <span class="info-label">当前用户</span>
+                <span class="info-value">${currentUser.username}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">用户角色</span>
+                <span class="info-value">${currentUser.role === 'admin' ? '管理员' : '普通用户'}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">用户ID</span>
+                <span class="info-value">${currentUser.id}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">当前时间</span>
+                <span class="info-value">${now.toLocaleString('zh-CN')}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">系统版本</span>
+                <span class="info-value">3DGS v1.0</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">API地址</span>
+                <span class="info-value">/api/auth</span>
+            </div>
+        `;
+        
+        document.getElementById('systemInfoContent').innerHTML = infoHTML;
+        document.getElementById('systemModal').classList.add('active');
+    }
+    
+    // 关闭系统信息模态框
+    function closeSystemModal() {
+        document.getElementById('systemModal').classList.remove('active');
+    }
+    
+    // 显示通知（从base.html继承）
+    function showNotification(message, type = 'info') {
+        // 如果存在全局的showNotification函数就使用它
+        if (typeof window.showNotification === 'function') {
+            window.showNotification(message, type);
+        } else {
+            // 否则显示简单提示
+            alert(message);
+        }
+    }
+
+    // ==================== 数据集上传功能 ====================
+    
+    // 全局变量存储上传后的信息
+    let currentUploadInfo = null;
+    
+    // 初始化文件选择器
+    document.addEventListener('DOMContentLoaded', function() {
+        const fileInfo = document.getElementById('fileInfo');
+        const videoFile = document.getElementById('videoFile');
+        
+        // 点击文件信息区域触发文件选择
+        fileInfo.addEventListener('click', function() {
+            videoFile.click();
+        });
+        
+        // 文件选择变化时更新显示
+        videoFile.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                fileInfo.textContent = `已选择: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`;
+                fileInfo.style.color = 'var(--primary-color)';
+                fileInfo.style.borderColor = 'var(--primary-color)';
+                
+                // 重置状态
+                currentUploadInfo = null;
+                updateStatus('请点击"上传视频"按钮开始上传', 'info');
+            }
+        });
+    });
+    
+    // 上传视频文件
+    async function uploadVideo() {
+        const videoFile = document.getElementById('videoFile');
+        const fileInfo = document.getElementById('fileInfo');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const generateBtn = document.getElementById('generateBtn');
+        
+        if (!videoFile.files || !videoFile.files[0]) {
+            updateStatus('请先选择视频文件', 'error');
+            return;
+        }
+        
+        const file = videoFile.files[0];
+        const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+        
+        if (!currentUser) {
+            updateStatus('请先登录系统', 'error');
+            return;
+        }
+        
+        // 创建FormData
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('username', currentUser.username);
+        
+        // 更新按钮状态
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 上传中...';
+        updateStatus('正在上传视频文件...', 'info');
+        
+        try {
+            const response = await fetch('/api/dataset/upload_video', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // 保存上传信息
+                currentUploadInfo = data.data;
+                
+                // 更新状态
+                updateStatus('视频上传成功！可以点击"生成数据集"按钮', 'success');
+                fileInfo.textContent = `已上传: ${data.data.filename}`;
+                fileInfo.style.color = '#10b981';
+                fileInfo.style.borderColor = '#10b981';
+                
+                // 启用生成按钮
+                generateBtn.disabled = false;
+                
+                // 预填场景名称
+                const trainSceneNameInput = document.getElementById('trainSceneName');
+                if (trainSceneNameInput && data.data.filename) {
+                    trainSceneNameInput.value = data.data.filename.replace(/\.[^/.]+$/, "");
+                }
+            } else {
+                updateStatus(`上传失败: ${data.msg}`, 'error');
+            }
+        } catch (error) {
+            updateStatus('上传失败，请检查网络连接', 'error');
+        } finally {
+            // 恢复按钮状态
+            uploadBtn.disabled = false;
+            uploadBtn.innerHTML = '<i class="fas fa-upload"></i> 上传视频';
+        }
+    }
+    
+    // 生成数据集
+    async function generateDataset() {
+        if (!currentUploadInfo) {
+            updateStatus('请先上传视频文件', 'error');
+            return;
+        }
+        
+        const generateBtn = document.getElementById('generateBtn');
+        
+        // 更新按钮状态
+        generateBtn.disabled = true;
+        generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 生成中...';
+        updateStatus('正在生成数据集，这可能需要几分钟...', 'info');
+
+        currentUploadInfo.video_path = 'G:/xf/gs_web'+ currentUploadInfo.video_path
+        console.log("video_path:" +  currentUploadInfo.video_path)
+
+        try {
+
+            const response = await fetch('/api/dataset/create_from_video', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    video_path: currentUploadInfo.video_path
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                updateStatus('数据集生成成功！', 'success');
+            } else {
+                updateStatus(`生成失败: ${data.msg}`, 'error');
+            }
+        } catch (error) {
+            updateStatus('生成失败，请检查网络连接', 'error');
+        } finally {
+            // 恢复按钮状态
+            generateBtn.disabled = false;
+            generateBtn.innerHTML = '<i class="fas fa-cogs"></i> 生成数据集';
+        }
+    }
+    
+    // 3DGS训练
+    async function startTraining() {
+        if (!currentUploadInfo) {
+            updateStatus('请先完成"创建训练数据集"步骤', 'error');
+            return;
+        }
+
+        const trainBtn = document.getElementById('trainBtn');
+        const statusArea = document.getElementById('trainStatusArea');
+        
+        // 更新训练状态显示
+        const updateTrainStatus = (msg, type) => {
+            statusArea.style.display = 'flex';
+            statusArea.className = 'status-area';
+            if (type === 'success') statusArea.classList.add('status-success');
+            else if (type === 'error') statusArea.classList.add('status-error');
+            else statusArea.classList.add('status-info');
+            statusArea.innerHTML = msg;
+        };
+
+        // 准备 scene_dir
+        let videoPath = currentUploadInfo.video_path;
+        // 去掉文件名，获取目录
+        let sceneDir = '';
+        const lastSlash = videoPath.lastIndexOf('/');
+        const lastBackslash = videoPath.lastIndexOf('\\');
+        const lastIndex = Math.max(lastSlash, lastBackslash);
+        
+        if (lastIndex === -1) {
+            updateTrainStatus('路径格式错误: ' + videoPath, 'error');
+            return;
+        }
+        
+        sceneDir = videoPath.substring(0, lastIndex);
+        
+        // 准备 scene_name
+        const trainSceneNameInput = document.getElementById('trainSceneName');
+        const sceneName = trainSceneNameInput.value.trim();
+
+        if (!sceneName) {
+            updateTrainStatus('请输入场景名称', 'error');
+            trainSceneNameInput.focus();
+            return;
+        }
+        
+        console.log("Starting training...");
+        console.log("scene_dir:", sceneDir);
+        console.log("scene_name:", sceneName);
+
+        // 获取当前用户名
+        const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+        const username = currentUser ? currentUser.username : 'default';
+
+        trainBtn.disabled = true;
+        trainBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 启动中...';
+        updateTrainStatus('<i class="fas fa-spinner fa-spin"></i> 正在启动训练任务...', 'info');
+
+        try {
+            const response = await fetch('/api/train/start', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    scene_dir: sceneDir,
+                    scene_name: sceneName,
+                    username: username
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.task_id) {
+                updateTrainStatus('<i class="fas fa-check-circle"></i> 训练已开始！Task ID: ' + data.task_id, 'success');
+            } else {
+                updateTrainStatus('启动失败: ' + (data.msg || '未知错误'), 'error');
+            }
+        } catch (error) {
+            updateTrainStatus('请求失败: ' + error.message, 'error');
+        } finally {
+            trainBtn.disabled = false;
+            trainBtn.innerHTML = '<span>开始训练</span><i class="fas fa-play-circle"></i>';
+        }
+    }
+    
+    // 3DGS渲染
+    async function startRender() {
+        const renderSceneNameInput = document.getElementById('renderSceneName');
+        const sceneName = renderSceneNameInput.value.trim();
+        const renderBtn = document.getElementById('renderBtn');
+        const statusArea = document.getElementById('renderStatusArea');
+        
+        // 更新渲染状态显示
+        const updateRenderStatus = (msg, type) => {
+            statusArea.style.display = 'flex';
+            statusArea.className = 'status-area';
+            if (type === 'success') statusArea.classList.add('status-success');
+            else if (type === 'error') statusArea.classList.add('status-error');
+            else statusArea.classList.add('status-info');
+            statusArea.innerHTML = msg;
+        };
+
+        if (!sceneName) {
+            updateRenderStatus('请输入场景名称', 'error');
+            renderSceneNameInput.focus();
+            return;
+        }
+
+        // 获取当前用户名
+        const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+        const username = currentUser ? currentUser.username : 'default';
+
+        // 构建 model_path
+        // 修改为：G:/xf/gs_web/user/${username}/models/${sceneName}
+        const modelPath = `G:/xf/gs_web/user/${username}/models/${sceneName}`;
+        
+        console.log("Starting render...");
+        console.log("model_path:", modelPath);
+
+        renderBtn.disabled = true;
+        renderBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 启动中...';
+        updateRenderStatus('<i class="fas fa-spinner fa-spin"></i> 正在启动渲染器...', 'info');
+
+        try {
+            // 1. 调用 render/start
+            const renderResponse = await fetch('/api/render/start', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model_path: modelPath
+                })
+            });
+
+            const renderData = await renderResponse.json();
+
+            if (!renderData.success || !renderData.task_id) {
+                throw new Error(renderData.msg || '渲染启动失败');
+            }
+
+            const taskId = renderData.task_id;
+            updateRenderStatus('<i class="fas fa-spinner fa-spin"></i> 渲染器运行中... (Task ID: ' + taskId + ')', 'info');
+            
+            // 2. 轮询状态，直到完成
+            let isFinished = false;
+            while (!isFinished) {
+                await new Promise(resolve => setTimeout(resolve, 2000)); // 每2秒轮询一次
+                
+                const statusResponse = await fetch(`/api/render/status/${taskId}`);
+                const statusData = await statusResponse.json();
+                
+                if (statusData.status === 'finished') {
+                    isFinished = true;
+                } else if (statusData.status === 'failed') {
+                    throw new Error('渲染失败: ' + (statusData.error || '未知错误'));
+                } else {
+                    // running, continue waiting
+                    // 可选：更新进度信息，如果有的话
+                }
+            }
+
+            updateRenderStatus('<i class="fas fa-spinner fa-spin"></i> 渲染完成，正在进行评估...', 'info');
+            
+            // 3. 调用 metric/evaluate
+            const metricResponse = await fetch('/api/metric/evaluate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model_path: modelPath
+                })
+            });
+            
+            const metricData = await metricResponse.json();
+            
+            if (metricData.success) {
+                updateRenderStatus('<i class="fas fa-check-circle"></i> 渲染与评估完成！', 'success');
+                showMetricModal(metricData.data);
+            } else {
+                updateRenderStatus('评估失败: ' + (metricData.msg || '未知错误'), 'error');
+            }
+
+        } catch (error) {
+            updateRenderStatus('操作失败: ' + error.message, 'error');
+        } finally {
+            renderBtn.disabled = false;
+            renderBtn.innerHTML = '<span>开始渲染</span><i class="fas fa-play-circle"></i>';
+        }
+    }
+    
+    // 显示评估模态框
+    function showMetricModal(data) {
+        const content = document.getElementById('metricContent');
+        content.innerHTML = `
+            <div class="info-item">
+                <span class="info-label">PSNR (峰值信噪比)</span>
+                <span class="info-value" style="color: #10b981; font-weight: bold;">${data.PSNR}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">SSIM (结构相似性)</span>
+                <span class="info-value" style="color: #3b82f6; font-weight: bold;">${data.SSIM}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">LPIPS (感知损失)</span>
+                <span class="info-value" style="color: #f59e0b; font-weight: bold;">${data.LPIPS}</span>
+            </div>
+            <div class="info-item" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed #eee; display: block;">
+                <p style="font-size: 0.85rem; color: #666;">
+                    <i class="fas fa-file-alt"></i> 
+                    详细报告已保存至 metrics.md
+                </p>
+            </div>
+        `;
+        document.getElementById('metricModal').classList.add('active');
+    }
+    
+    // 关闭评估模态框
+    function closeMetricModal() {
+        document.getElementById('metricModal').classList.remove('active');
+    }
+
+    // 更新状态显示
+    function updateStatus(message, type = 'info') {
+        const statusArea = document.getElementById('statusArea');
+        
+        // 清除现有类
+        statusArea.className = 'status-area';
+        
+        // 添加类型类
+        if (type === 'success') {
+            statusArea.classList.add('status-success');
+        } else if (type === 'error') {
+            statusArea.classList.add('status-error');
+        } else {
+            statusArea.classList.add('status-info');
+        }
+        
+        // 更新文本
+        statusArea.textContent = message;
+    }
+</script>
+{% endblock %}

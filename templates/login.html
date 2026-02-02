@@ -1,0 +1,379 @@
+{% extends "base.html" %}
+
+{% block title %}用户登录{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-container fade-in">
+        <div class="auth-header">
+            <div class="auth-icon">
+                <i class="fas fa-sign-in-alt"></i>
+            </div>
+            <h1 class="auth-title">欢迎回来</h1>
+            <p class="auth-subtitle">登录您的3DGS训练系统账户</p>
+        </div>
+        
+        <form id="loginForm" class="auth-form">
+            <div class="form-group">
+                <div class="input-icon">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="username" name="username" required placeholder="请输入用户名">
+                </div>
+                <div class="form-hint">请输入您的用户名</div>
+            </div>
+            
+            <div class="form-group">
+                <div class="input-icon">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" name="password" required placeholder="请输入密码">
+                    <button type="button" class="toggle-password" id="togglePassword">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                <div class="form-hint">请输入您的登录密码</div>
+            </div>
+            
+            <button type="submit" class="btn-auth" id="loginBtn">
+                <span class="btn-text">登录系统</span>
+                <i class="fas fa-arrow-right"></i>
+            </button>
+        </form>
+        
+        <div class="auth-footer">
+            <p class="auth-link">
+                还没有账户？
+                <a href="{{ url_for('register_page') }}" class="link-primary">立即注册</a>
+            </p>
+            <div class="auth-divider">
+                <span>或</span>
+            </div>
+            <a href="{{ url_for('index') }}" class="btn-back">
+                <i class="fas fa-home"></i>
+                返回首页
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.auth-page {
+    min-height: calc(100vh - 70px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+}
+
+.auth-container {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 420px;
+    border: 1px solid var(--gray-200);
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.auth-icon {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 1.5rem;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: white;
+}
+
+.auth-title {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: var(--dark-color);
+    margin-bottom: 0.5rem;
+}
+
+.auth-subtitle {
+    color: var(--gray-600);
+    font-size: 0.95rem;
+}
+
+.auth-form {
+    margin-bottom: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.input-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon i {
+    position: absolute;
+    left: 16px;
+    color: var(--gray-500);
+    font-size: 1.1rem;
+    z-index: 1;
+}
+
+.input-icon input {
+    width: 100%;
+    padding: 16px 16px 16px 48px;
+    border-radius: 10px;
+    border: 2px solid var(--gray-300);
+    font-size: 1rem;
+    transition: var(--transition);
+    background: var(--gray-100);
+}
+
+.input-icon input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+}
+
+.toggle-password {
+    position: absolute;
+    right: 16px;
+    background: transparent;
+    border: none;
+    color: var(--gray-500);
+    cursor: pointer;
+    padding: 4px;
+    font-size: 1.1rem;
+    transition: var(--transition);
+}
+
+.toggle-password:hover {
+    color: var(--gray-700);
+}
+
+.form-hint {
+    font-size: 0.85rem;
+    color: var(--gray-500);
+    margin-top: 6px;
+    margin-left: 8px;
+}
+
+.btn-auth {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 1.5rem;
+}
+
+.btn-auth:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(67, 97, 238, 0.3);
+}
+
+.btn-auth:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.auth-footer {
+    text-align: center;
+}
+
+.auth-link {
+    color: var(--gray-600);
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+}
+
+.link-primary {
+    color: var(--primary-color);
+    font-weight: 500;
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.link-primary:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+}
+
+.auth-divider {
+    display: flex;
+    align-items: center;
+    margin: 1.5rem 0;
+    color: var(--gray-500);
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--gray-300);
+}
+
+.auth-divider span {
+    padding: 0 15px;
+    font-size: 0.9rem;
+}
+
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    background: var(--gray-100);
+    color: var(--gray-700);
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: var(--transition);
+}
+
+.btn-back:hover {
+    background: var(--gray-200);
+    transform: translateY(-2px);
+}
+
+.btn-back i {
+    font-size: 1rem;
+}
+
+/* 加载动画 */
+.btn-loading {
+    position: relative;
+    color: transparent !important;
+}
+
+.btn-loading::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* 响应式调整 */
+@media (max-width: 480px) {
+    .auth-container {
+        padding: 2rem 1.5rem;
+    }
+    
+    .auth-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+    
+    .auth-title {
+        font-size: 1.6rem;
+    }
+}
+</style>
+{% endblock %}
+{% block extra_js %}
+<script>
+    // 初始化密码显示/隐藏切换
+    document.addEventListener('DOMContentLoaded', function () {
+        initPasswordToggle();
+    });
+
+    function initPasswordToggle() {
+        const toggleBtn = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+
+        if (!toggleBtn) return;
+
+        toggleBtn.addEventListener('click', function () {
+            const type = passwordInput.type;
+            const icon = this.querySelector('i');
+
+            if (type === 'password') {
+                passwordInput.type = 'text';
+                icon.className = 'fas fa-eye-slash';
+            } else {
+                passwordInput.type = 'password';
+                icon.className = 'fas fa-eye';
+            }
+        });
+    }
+
+    // 登录表单提交
+    document.getElementById('loginForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
+        const loginBtn = document.getElementById('loginBtn');
+
+        if (!username || !password) {
+            showNotification('请输入用户名和密码', 'error');
+            return;
+        }
+
+        loginBtn.disabled = true;
+        loginBtn.classList.add('btn-loading');
+
+        try {
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                // ✅ 存储登录信息
+                sessionStorage.setItem('currentUser', JSON.stringify(data.data));
+
+                // ✅ 立刻跳转（不要 setTimeout）
+                window.location.href = "{{ url_for('index') }}";
+            } else {
+                showNotification(data.msg || '登录失败', 'error');
+                resetLoginButton(loginBtn);
+            }
+        } catch (err) {
+            console.error(err);
+            showNotification('网络错误，请稍后重试', 'error');
+            resetLoginButton(loginBtn);
+        }
+    });
+
+    function resetLoginButton(btn) {
+        btn.disabled = false;
+        btn.classList.remove('btn-loading');
+    }
+</script>
+{% endblock %}
